@@ -1,0 +1,16 @@
+FileVersion:2
+Type:Static
+Guid:2DD4D5E2-4325-6AC3-CFF7-81916961F925
+ParentGuid:90125476-4C70-0B85-C63C-24B3B6A74323
+
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_127GreySquare.TX_Swap_127GreySquare
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_BlackSquare.TX_Swap_BlackSquare
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_Caustic.TX_Swap_Caustic
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_CloudNoise.TX_Swap_CloudNoise
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_FlatNormal.TX_Swap_FlatNormal
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_FlatORM.TX_Swap_FlatORM
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_OffWhiteSquare.TX_Swap_OffWhiteSquare
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_PerlinNoise.TX_Swap_PerlinNoise
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_PerlinNoise2.TX_Swap_PerlinNoise2
+/OVFPPlugin/masterMaterials/resources/defaultTextures/FlatMaps/TX_Swap_WhiteSquare.TX_Swap_WhiteSquare
+/OVFPPlugin/masterMaterials/resources/defaultTextures/SubsurfaceProfiles/SSP_Jade.SSP_Jade

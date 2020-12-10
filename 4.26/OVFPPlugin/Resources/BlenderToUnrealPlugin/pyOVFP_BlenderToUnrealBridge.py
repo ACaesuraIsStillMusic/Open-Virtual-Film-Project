@@ -39,8 +39,10 @@ from bpy.types import (Panel,
 #get install directory for UE4 and setup remote execution
 if platform.system()=='Windows':
     import winreg
-    supportedVersions = ["4.21","4.25","4.26"]
+    supportedVersions = ["4.25","4.26"]
+    val = ''
     for ver in supportedVersions:
+        
         key = 'SOFTWARE\\EpicGames\\Unreal Engine\\' + ver
         root = winreg.HKEY_LOCAL_MACHINE
         value = 'InstalledDirectory'
@@ -54,7 +56,7 @@ if platform.system()=='Windows':
         except:
             winreg.CloseKey(hkey)
             pass
-        winreg.CloseKey(hkey)
+        #winreg.CloseKey(hkey)
         
     
     sys.path.append(val + '/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python')

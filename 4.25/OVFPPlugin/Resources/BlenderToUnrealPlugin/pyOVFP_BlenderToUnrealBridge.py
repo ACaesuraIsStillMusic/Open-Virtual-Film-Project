@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Open Virtual Film Project Blender To Unreal Bridge",
     "author": "Fae Corrigan",
-    "version": (0,1,1,0),
+    "version": (0,1,1,2),
     "category": "Object",
     "blender": (2,80,0),
     "location": "View3D > Sidebar > Tools Tab",
@@ -82,9 +82,6 @@ else:
     print("Version below 2.90")
 
 
-
-                  
-               
  #######################################################################################################                      
  #######################################################################################################
 def updateuedirectory(self, context):
@@ -137,7 +134,26 @@ def updateimportFunction(self,context):
         importFunction(self,context)
         mytool.OVFPB2U_importpathprotect = False
 
+def updateEnvField(self,context):
+    scene = context.scene
+    mytool = scene.my_tool
+    if str(mytool.OVFPB2U_unrealEnvNameDropdown) not in ["","New..."]:
+        mytool.OVFPB2U_objectSource = mytool.OVFPB2U_unrealEnvNameDropdown
 
+def setupenvNames(self,context):
+    scene = context.scene
+    mytool = scene.my_tool
+    envString = mytool.OVFPB2U_envNames
+    envString = re.sub(' ', '', envString)
+    envString = envString.split(',')
+    outstring = []
+    for a in envString:
+        
+        outstring.append((a,a,''))
+    
+    return outstring
+    
+    
 # ------------------------------------------------------------------------
 #    Addon Preferences
 # ------------------------------------------------------------------------
@@ -314,7 +330,6 @@ class OVFPB2U_OT_properties(PropertyGroup):
         min = 0.0001
         )
           
-    
     OVFPB2U_cleanupmergedistance: FloatProperty(
         name = "Merge Distance",
         description = "Max distance between verticies before they are merged into 1",
@@ -328,7 +343,6 @@ class OVFPB2U_OT_properties(PropertyGroup):
         default = 0.2,
         min = 0.0001
         )
-        
         
     OVFPB2U_objectName: StringProperty(
         name="Object Import Name",
@@ -359,7 +373,6 @@ class OVFPB2U_OT_properties(PropertyGroup):
         description="Command to send to UE",
         default=''
         )
-
     
     OVFPB2U_FBXexportPath: StringProperty(
         name="FBX Export Path",
@@ -405,6 +418,24 @@ class OVFPB2U_OT_properties(PropertyGroup):
         get=None,
         set=None,
         update = updateimportFunction,
+        )
+    
+    OVFPB2U_unrealEnvNameDropdown: EnumProperty(
+        name = "Env Names",
+        description="Use the get environment names from UE button to fill out this list. When you select an item in this list it will automatically update the env name field",
+        default=None,
+        items = setupenvNames,
+        options={'ANIMATABLE'},
+        get=None,
+        set=None,
+        update = updateEnvField,
+        )
+    
+    OVFPB2U_envNames:  StringProperty(
+        name="Unreal Environment Name",
+        description="",
+        default="New...",
+        maxlen=255,
         )
     
     OVFPB2U_unrealAssetType: EnumProperty(
@@ -467,21 +498,29 @@ class OVFPB2U_PT_SetupPanel(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
 
         box.separator()
         box.prop(mytool, "OVFPB2U_importType")
+        
         if mytool.OVFPB2U_importType == "Asset":
             t = "Asset Name"
             t2 = "Asset Source"
+            box.prop(mytool, "OVFPB2U_unrealAssetType")
         else:
             t = "Import desc."
             t2= "Env Name"
+            
+
         box.prop(mytool, "OVFPB2U_objectName", text = t)
+        if mytool.OVFPB2U_importType == "Scene":
+            box.operator("object.queryueenv")
+            box.prop(mytool, "OVFPB2U_unrealEnvNameDropdown")
         box.prop(mytool, "OVFPB2U_objectSource", text = t2)
         box.prop(mytool, "OVFPB2U_artistInitials")
-        box.prop(mytool, "OVFPB2U_unrealAssetType")
+        
         if mytool.OVFPB2U_importType == "Asset":
             box.prop(mytool, "OVFPB2U_unrealAssetCategory")
         box.separator()
         box.operator("object.removeduplicatematerials")
-
+        box.operator("object.queryuematerials")
+        
 class OVFPB2U_PT_INTEGRITYPANEL(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
     bl_parent_id = "OVFPB2U_PT_OverviewPanel"
     bl_label = "Model Integrety Checks"
@@ -594,7 +633,7 @@ class OVFPB2U_PT_EXPORTPANEL(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
                 layout.operator("context.b2ubexportall")
                 layout.operator("context.b2ubexportselected")
                 layout.separator()
-                layout.operator("object.sendcommandtounreal")
+                layout.operator("object.sendexporttounreal")
                 
             else:
                 layout.label(text = "Please check your scale is correct.")
@@ -666,8 +705,6 @@ class OVFPB2U_OT_Test(bpy.types.Operator):
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
 ##############################################################################################################################################################################################################
-
-
 
 class OVFPB2U_OT_SetDefaultUnits(bpy.types.Operator):
     """Run once before importing to make sure your blender units are all set up correctly for export to UE4. Note: this may cause issues with physics and lighting inside of blender"""      # Use this as a tooltip for menu items and buttons.
@@ -884,11 +921,7 @@ class OVFPB2U_OT_writeCSV(bpy.types.Operator):
         roughnessamount = '' #Roughness Amount, Roughness
         specularconstant = '' #Specular Constant,Specular
         anisotropictexture = '' #Anisotropic,Anisotropic
-        
-        
-        
-        
-        
+        overwriteExisting = "n" #y yes or True all work, anything else does not overwrite
         
         #read parameters from a BSDF_PRINCIPLED shader if it exists
         #try:
@@ -976,11 +1009,13 @@ class OVFPB2U_OT_writeCSV(bpy.types.Operator):
                 #except:
                 #    print( 'not found' )
                     
-                overwriteExisting = "n" #y yes or True all work, anything else does not overwrite
-                rows.append([ m.name , m.name, mastermat, overwriteExisting , baseColorTexture, baseColorTint , subCTexture, subsurfaceTint,clearcoatnormal,clearcoatroughnesstexture,clearcoatroughnessamount,emissivetexture,emissiveamount,metallictexture,metallicbrightness,normaltexture,opacitytexture,opacityamount,roughnesstexture,roughnessamount,specularconstant,anisotropictexture])
                 
-        
-        
+                rows.append([ m.name , m.name, mastermat, overwriteExisting , baseColorTexture, baseColorTint , subCTexture, subsurfaceTint,clearcoatnormal,clearcoatroughnesstexture,clearcoatroughnessamount,emissivetexture,emissiveamount,metallictexture,metallicbrightness,normaltexture,opacitytexture,opacityamount,roughnesstexture,roughnessamount,specularconstant,anisotropictexture])
+            else:
+                rows.append([ m.name , m.name, mastermat, overwriteExisting])
+        else: #we don't know how to parse the material, so just create a blank one in UE
+            rows.append([ m.name , m.name, mastermat, overwriteExisting])
+
 
         return rows
 
@@ -1277,7 +1312,6 @@ class OVFPB2U_OT_runSetup(bpy.types.Operator):
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
-
 ##############################################################################################################################################################################################################
 
 class OVFPB2U_OT_createImportPath(bpy.types.Operator):
@@ -1340,7 +1374,7 @@ class OVFPB2U_OT_createExportPath(bpy.types.Operator):
             unrealPath = unrealPath + '/' #make sure that the unreal path ends in a way that can be appended
         
         if mytool.OVFPB2U_importType == 'Scene':
-            mytool.OVFPB2U_FBXName = mytool.OVFPB2U_unrealAssetType + "_" + mytool.OVFPB2U_objectSource +"_" +mytool.OVFPB2U_objectName + ".fbx"
+            mytool.OVFPB2U_FBXName = "SM" + "_" + mytool.OVFPB2U_objectSource +"_" +mytool.OVFPB2U_objectName + ".fbx"
             mytool.OVFPB2U_FBXexportPath = unrealPath + "environments/"+mytool.OVFPB2U_objectSource + "/incomingGeo/"+datetime.today().strftime("%Y%m%d")+"_"+ mytool.OVFPB2U_objectName +"_" + mytool.OVFPB2U_artistInitials + "/"
         elif mytool.OVFPB2U_importType == 'Asset':
             mytool.OVFPB2U_FBXName = mytool.OVFPB2U_unrealAssetType + "_" + mytool.OVFPB2U_objectSource +"_" + mytool.OVFPB2U_objectName + ".fbx"
@@ -2213,10 +2247,10 @@ class OVFPB2U_OT_PurgeAll(bpy.types.Operator):
 
 ##############################################################################################################################################################################################################
 
-class OVFPB2U_OT_sendcommandtoUnreal(bpy.types.Operator):
-    """Material Naming Convention"""      # Use this as a tooltip for menu items and buttons.
-    bl_idname = "object.sendcommandtounreal"        # Unique identifier for buttons and menu items to reference.
-    bl_label = "Send Command to Unreal"         # Display name in the interface.
+class OVFPB2U_OT_sendExporttoUnreal(bpy.types.Operator):
+    """Send Exported Files to Unreal"""      # Use this as a tooltip for menu items and buttons.
+    bl_idname = "object.sendexporttounreal"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Send Export to Unreal"         # Display name in the interface.
 
     def execute(self, context):        # execute() is called when running the operator.
         scene = context.scene
@@ -2232,13 +2266,14 @@ class OVFPB2U_OT_sendcommandtoUnreal(bpy.types.Operator):
         except Exception:
             emsg = "Send to Unreal failed to create a connection to UE. Make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
             print(emsg)
-            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, check the console")  
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to unreal failed to open a connection, check the console")  
 
         try:
             exec_modes = ['EvaluateStatement','ExecuteFile','ExecuteStatement']
             exec_mode = exec_modes[1]
             rec = remote_exec.run_command(mytool.OVFPB2U_unrealCommand, exec_mode=exec_mode)
-            remote_exec.close_command_connection()
+            print("Result: " + str(rec))
+            
         except Exception:
             emsg = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
             print(emsg)
@@ -2251,6 +2286,135 @@ class OVFPB2U_OT_sendcommandtoUnreal(bpy.types.Operator):
         
         
 
+        
+
+        #end original script
+
+
+        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
+
+##############################################################################################################################################################################################################
+
+class OVFPB2U_OT_queryMaterials(bpy.types.Operator):
+    """Get Material Names from Unreal. If unreal is open, this tool will search an environment or assets folder for material names and create a blank material for them in your scene. Note, this does not transfer textures or other material properties"""      # Use this as a tooltip for menu items and buttons.
+    bl_idname = "object.queryuematerials"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Get Materials From UE"         # Display name in the interface.
+
+    def execute(self, context):        # execute() is called when running the operator.
+        scene = context.scene
+        mytool = scene.my_tool
+
+        rec = {}
+        
+        remote_exec = remote.RemoteExecution()
+               
+        try: 
+            remote_exec.start()
+            remote_exec.open_command_connection(remote_exec.remote_nodes)   #TODO: this will timeout before the import has finished and shows an error. 
+        except Exception:
+            emsg = "Send to Unreal failed to create a connection to UE. Make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
+            print(emsg)
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to unreal failed to open a connection, check the console")  
+
+        try:
+            exec_modes = ['EvaluateStatement','ExecuteFile','ExecuteStatement']
+            exec_mode = exec_modes[1]
+            uc_mt = mytool.OVFPB2U_MatImportPath
+            command = 'OVFP_DDCToUEBridgeImporter.py -mt "' + uc_mt + '" -q "m"'
+            mytool.OVFPB2U_unrealCommand = command
+            rec = remote_exec.run_command(command, exec_mode=exec_mode)
+        except Exception:
+            emsg = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
+            print(emsg)
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, check the console")  
+        
+        #print(rec)
+        try:
+            mat_list = bpy.data.materials
+            matNames = []
+            for m in mat_list:
+                matNames.append(m.name)
+                
+            output = rec.get('output')[1].get('output')
+            assets = output.split('asset_name: "')
+            if len(assets)>1:
+                assets = assets[1:]
+                for asset in assets:
+                    matName = asset.split('"')[0]
+                    #print(matName)
+                    if matName not in matNames:
+                        bpy.data.materials.new(name=matName)
+        except Exception:
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message ="No materials to import")
+        
+        try:
+            remote_exec.close_command_connection()
+        except Exception:
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message ="Failed to close remote connection")
+        
+
+        #end original script
+
+
+        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
+
+##############################################################################################################################################################################################################
+class OVFPB2U_OT_queryEnvironments(bpy.types.Operator):
+    """Get Environment Names from Unreal. If unreal is open, this tool will search for environment names and fill out the dropdown"""      # Use this as a tooltip for menu items and buttons.
+    bl_idname = "object.queryueenv"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Get Environments From UE"         # Display name in the interface.
+
+    def execute(self, context):        # execute() is called when running the operator.
+        scene = context.scene
+        mytool = scene.my_tool
+
+        rec = {}
+        
+        remote_exec = remote.RemoteExecution()
+               
+        try: 
+            remote_exec.start()
+            remote_exec.open_command_connection(remote_exec.remote_nodes)   #TODO: this will timeout before the import has finished and shows an error. 
+        except Exception:
+            emsg = "Send to Unreal failed to create a connection to UE. Make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
+            print(emsg)
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to unreal failed to open a connection, check the console")  
+
+        try:
+            exec_modes = ['EvaluateStatement','ExecuteFile','ExecuteStatement']
+            exec_mode = exec_modes[1]
+            uc_mt = mytool.OVFPB2U_MatImportPath
+            command = 'OVFP_DDCToUEBridgeImporter.py -q "env"'
+            mytool.OVFPB2U_unrealCommand = command
+            rec = remote_exec.run_command(command, exec_mode=exec_mode)
+        except Exception:
+            emsg = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, make sure Unreal is open and correctly set up, close any other instances of blender and run the tool again. If the error persists you might have an issue with your firewall"
+            print(emsg)
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = "Send to Unreal may have encountered an issue. If the file imported, ignore this message. If not, check the console")  
+        
+        try:
+            output = rec.get('output')[1].get('output')
+            dir = context.preferences.addons[__name__].preferences.UnrealSceneImportDirectory
+            try:
+                dir = dir.split("/",2)[2]
+            except:
+                dir = ""
+            path = dir
+            output = output + path
+            envNames = [f.name for f in os.scandir(output) if f.is_dir()]
+            newEnvNames = "New..."
+            for e in envNames:
+                newEnvNames = newEnvNames + "," + e
+            mytool.OVFPB2U_envNames = newEnvNames     
+            #print(envNames)
+
+        except Exception:
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message ="No environments to import")
+
+        try:
+            remote_exec.close_command_connection()
+        except Exception:
+            bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message ="Failed to close remote connection")
         
 
         #end original script
@@ -2701,7 +2865,7 @@ classes = (
     OVFPB2U_OT_namingConMeshes,
     OVFPB2U_OT_RemoveDuplicateMaterials,
     OVFPB2U_OT_RenameMaterials,
-    OVFPB2U_OT_sendcommandtoUnreal,
+    OVFPB2U_OT_sendExporttoUnreal,
     OVFPB2U_OT_cursorToSelected,
     OVFPB2U_OT_applymodifiers,
     OVFPB2U_PT_OverviewPanel,
@@ -2727,6 +2891,8 @@ classes = (
     OVFPB2U_OT_SelectDegenerateObjects,
     OVFPB2U_OT_Test,
     OVFPB2U_OT_PurgeAll,
+    OVFPB2U_OT_queryMaterials,
+    OVFPB2U_OT_queryEnvironments,
     
     
 
@@ -2753,7 +2919,8 @@ def register():
     from bpy.utils import register_class
     for cls in classes:
         register_class(cls)
-    bpy.types.TOPBAR_MT_app_system.append(menu_func) #TODO change this to an OVFP menu with sub menus for cleanup, etc.
+    if (2 , 90 , 0 ) <= bpy.app.version:
+        bpy.types.TOPBAR_MT_app_system.append(menu_func) #TODO change this to an OVFP menu with sub menus for cleanup, etc.
     bpy.types.Scene.my_tool = PointerProperty(type=OVFPB2U_OT_properties)
     
     

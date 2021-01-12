@@ -1,13 +1,15 @@
 bl_info = {
     "name": "Open Virtual Film Project Blender To Unreal Bridge",
     "author": "Fae Corrigan",
-    "version": (0,1,1,2),
+    "version": (0,1,1,3),
     "category": "Object",
     "blender": (2,80,0),
     "location": "View3D > Sidebar > Tools Tab",
     "description": "A set of cleanup, import and export tools made to transfer files between blender and UE4 using the open virtual film project's standards",
     "warning": "",
 }
+
+updateDir = ""
 
 import bpy
 import re
@@ -53,15 +55,19 @@ if platform.system()=='Windows':
             pass
         try:
             (val, typ) = winreg.QueryValueEx(hkey, value)
-        except:
             winreg.CloseKey(hkey)
+        except:
+            
             pass
         #winreg.CloseKey(hkey)
         
     
     sys.path.append(val + '/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python')
+    
     msg = val + '/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python'
+
     print(msg)
+    updateDir = val+ "\\Engine\\Plugins\\Marketplace\\OpenVirtualFilm\\Resources\\BlenderToUnrealPlugin\\"
     
     try:
         #bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = msg)
@@ -75,6 +81,20 @@ else: #working with a mac computer
     sys.path.append('/Users/Shared/Epic Games/UE_4.25/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python')
     import remote_execution as remote
 
+updateAvailable = False
+try:
+    with open(updateDir + "version.txt", mode='r') as versionFile:
+        new_version = versionFile.read()
+        new_version = tuple(map(int, new_version.split(',')))
+        current_version = bl_info.get("version")
+        
+        print(new_version)
+        print(current_version)
+        if new_version > current_version:
+            updateAvailable = True
+except:
+    pass
+        
 #test blender version
 if (2 , 90 , 0 ) <= bpy.app.version:
     print("Version is 2.90 or above")
@@ -152,7 +172,11 @@ def setupenvNames(self,context):
         outstring.append((a,a,''))
     
     return outstring
-    
+
+def updateVersiondirectory(self,context):
+    scene = context.scene
+    mytool = scene.my_tool
+    mytool.OVFPB2U_updatePath = updateDir
     
 # ------------------------------------------------------------------------
 #    Addon Preferences
@@ -286,6 +310,12 @@ class OVFPB2U_OT_properties(PropertyGroup):
 
     
     #addon_prefs = bpy.context.preferences.addons[__name__].preferences
+    OVFPB2U_updatePath: StringProperty(
+        name="",
+        description="",
+        default = updateDir,
+        update = updateVersiondirectory
+        )    
     
     OVFPB2U_setoriginbool: BoolProperty(
         name="Use Cursor for Origin",
@@ -482,6 +512,15 @@ class OVFPB2U_PT_OverviewPanel(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
         #layout.label(text="This is the main panel.")
         scene = context.scene
         mytool = scene.my_tool
+        
+        
+        if updateAvailable:
+            box = layout.box()
+            box.label(text = "There is an update available:")
+            box.prop(mytool, "OVFPB2U_updatePath")
+           
+                
+            
  
 class OVFPB2U_PT_SetupPanel(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
     bl_parent_id = "OVFPB2U_PT_OverviewPanel"
@@ -2922,6 +2961,8 @@ def register():
     if (2 , 90 , 0 ) <= bpy.app.version:
         bpy.types.TOPBAR_MT_app_system.append(menu_func) #TODO change this to an OVFP menu with sub menus for cleanup, etc.
     bpy.types.Scene.my_tool = PointerProperty(type=OVFPB2U_OT_properties)
+    
+
     
     
     

@@ -1,0 +1,17 @@
+{
+	"RemapUnityFiles": 
+	{
+		"Module.OVFPPlugin.cpp.obj": [
+			"OVFPPlugin.cpp.obj",
+			"OVFPPluginBPLibrary.cpp.obj",
+			"OVFPPluginCommands.cpp.obj",
+			"OVFPPluginStyle.cpp.obj",
+			"OVFPSettings.cpp.obj"
+		],
+		"Module.OVFPPlugin.gen.cpp.obj": [
+			"OVFPPlugin.init.gen.cpp.obj",
+			"OVFPPluginBPLibrary.gen.cpp.obj",
+			"OVFPSettings.gen.cpp.obj"
+		]
+	}
+}

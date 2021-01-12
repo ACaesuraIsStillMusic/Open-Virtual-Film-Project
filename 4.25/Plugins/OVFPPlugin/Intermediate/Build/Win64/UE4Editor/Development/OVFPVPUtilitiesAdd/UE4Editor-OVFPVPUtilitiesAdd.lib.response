@@ -1,0 +1,14 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-OVFPVPUtilitiesAdd.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"C:\Users\danco\Downloads\cppexp\CppExposure425\Intermediate\Build\Win64\CppExposure425Editor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.obj"
+"C:\Users\danco\Downloads\cppexp\CppExposure425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPVPUtilitiesAdd\Module.OVFPVPUtilitiesAdd.cpp.obj"
+"C:\Users\danco\Downloads\cppexp\CppExposure425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPVPUtilitiesAdd\Module.OVFPVPUtilitiesAdd.gen.cpp.obj"
+"C:\Users\danco\Downloads\cppexp\CppExposure425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPVPUtilitiesAdd\Default.rc2.res"
+/OUT:"C:\Users\danco\Downloads\cppexp\CppExposure425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPVPUtilitiesAdd\UE4Editor-OVFPVPUtilitiesAdd.lib"
+/INCLUDE:IMPLEMENT_MODULE_OVFPVPUtilitiesAdd

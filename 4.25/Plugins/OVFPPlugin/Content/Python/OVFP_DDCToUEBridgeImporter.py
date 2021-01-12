@@ -108,15 +108,15 @@ class USendToUnreal:
         assets = asset_reg.get_assets(filter)
         
         ret = "query materials: "+ str(assets)
-        print ret
-        return  ret
+        print(ret)
+        return ret
         
     
     def queryEnvironments(self):
         print("query environment")
         path = unreal.Paths.project_content_dir()
         ret = unreal.Paths.convert_relative_path_to_full(path) 
-        print ret
+        print(ret)
         return ret
     
     def runBlutility(self, path = ""):#TODO: Cast test to make sure it can execute & see if autorun = true

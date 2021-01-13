@@ -17,6 +17,8 @@ from shutil import copyfile
 
 from functools import partial
 
+updateDir = ''
+current_version = 0.2 
 #ue python remote execution
 if platform.system()=='Windows':
     import _winreg as winreg
@@ -41,6 +43,7 @@ if platform.system()=='Windows':
     sys.path.append(val + '/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python')
     msg = val + '/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python'
     print msg
+    updateDir = val+ "\\Engine\\Plugins\\Marketplace\\OpenVirtualFilm\\Resources\\MayaToUnrealPlugin\\"
     
     try:
         #bpy.ops.ovfpb2u.messagebox('INVOKE_DEFAULT', message = msg)
@@ -54,7 +57,20 @@ else: #working with a mac computer
     sys.path.append('/Users/Shared/Epic Games/UE_4.25/Engine/Plugins/Experimental/PythonScriptPlugin/Content/Python')
     import remote_execution as remote
 
-
+updateAvailable = False
+try:
+    with open(updateDir + "version.txt", mode='r') as versionFile:
+        new_version = versionFile.read()
+        new_version = float(new_version)
+        
+        
+        print 'new version: ' + str(new_version)
+        print 'current version: ' + str(current_version)
+        if new_version > current_version:
+            updateAvailable = True
+except:
+    pass
+    
 
 def maya_useNewAPI():
 	"""
@@ -85,7 +101,7 @@ class OVFPToolBar:
         self.texImportPath = ""
         self.importpathprotect = False #prevent an endless loop
         self.forceTextureNames = False #if a texture follows a naming convention, don't forcibly rename it. Mostly for testing
-        self.overwriteFlagBox = True #if the overwrite materials flag is set
+        self.overwriteFlagBox = False #if the overwrite materials flag is set
         
         self.colorTextureNodes = ["color","Base Color"] #node names for each type of texture
         self.metTextureNodes = ["Metallic","TEX Metallic Map"] 
@@ -134,9 +150,16 @@ class OVFPToolBar:
         # Dock it on the right of Maya
         self.dCtrl = cmds.dockControl(l="Open Virtual Film Project", a='right', con=self.winID, bgc=[0.2,0.2,0.2], mov=True, ret=False)
         
+            
+        if updateAvailable:
+            cmds.separator (style='none', height=8)
+            txt = "there is an update available at: " + updateDir
+            cmds.scrollField( editable=False, wordWrap=True, text= txt, bgc = [1,0.2,0.2])
+            
         self.widgets["Disclaimer"] = cmds.frameLayout( label='Read Me', labelAlign='Center', collapsable = True , collapse = False, w=fullwidth, parent = self.widgets["mainLayout"])
         cmds.scrollField( editable=False, wordWrap=True, text='The OVFP maya to UE bridge tool is a beta software with all the bugs and development that that entails. It requires the Open Virtual Film Project Unreal Plugin. If you encounter a bug with the software, please send me an email at https://www.openvirtualfilmproject.com/about and I will try to fix it as soon as possible. If you have a file that is especially problematic, contact me and when I have time to look at it I will send you a link to upload it.  ' )
         
+
         #setupPanel
         self.widgets["Setup"] = cmds.frameLayout( label='Setup', labelAlign='Center', collapsable = True , collapse = False, w=fullwidth, parent = self.widgets["mainLayout"])
         cmds.columnLayout( w=fullwidth , adjustableColumn = True)
@@ -182,7 +205,7 @@ class OVFPToolBar:
             cmds.menuItem( label=i)
         
         cmds.separator (style='none', height=4)
-        cmds.checkBox( label='Overwrite Materials', align='left', value = True, onCommand = partial(self.enableMatoverwrite), offCommand = partial(self.disableMatoverwrite))
+        cmds.checkBox( label='Overwrite Materials', align='left', value = False, onCommand = partial(self.enableMatoverwrite), offCommand = partial(self.disableMatoverwrite))
         cmds.separator (style='none', height=4)
         cmds.text( label='RootExportDirectory:', align='left' )
         self.widgets["exportDirectory"] = cmds.textField(changeCommand=partial(self.updateExportDirectory),text = self.exportfilepath)
@@ -450,7 +473,12 @@ class OVFPToolBar:
                 self.texNameSingle(m,self.getTexture(m,self.coatTextureNodes),"_opa")
                   
     def updateSetup(self, *args):
-        rootExportDirectory = cmds.textField(self.widgets["exportDirectory"], editable = True, query = True, text=True)
+        self.defaultExportPath = cmds.textField(self.widgets["exportDirectory"], editable = True, query = True, text=True)
+        
+        if self.defaultExportPath.endswith('/') or self.defaultExportPath.endswith('\\') :
+            pass
+        else:
+            self.defaultExportPath = self.defaultExportPath + '/'
         #self.widgets["ImportDropdown"] = cmds.optionMenuGrp( label='Import Type',columnAlign2 = ("left","left"))
         importType = cmds.optionMenu(self.widgets["ImportDropdown"], query=True, value=True)
         assetdesc = cmds.textField(self.widgets["AssetName"], editable = True, query = True, text=True)
@@ -514,6 +542,7 @@ class OVFPToolBar:
         
     def exportAll(self, *args):
         print 'export all'
+        self.updateSetup(self)
         self.makeUniqueNames(self) #fbx won't export properly if there are bad names in the outliner
         self.bakePivots(self)
         if len(cmds.textField(self.widgets["ArtistInitials"], editable = True, query = True, text=True)) > 0 and  len(cmds.textField(self.widgets["AssetSource"], editable = True, query = True, text=True)) > 0 and len(cmds.textField(self.widgets["AssetName"], editable = True, query = True, text=True)) > 0:

@@ -759,9 +759,10 @@ class OVFPB2U_OT_SetDefaultUnits(bpy.types.Operator):
         scene = context.scene
         mytool = scene.my_tool
         bpy.context.scene.unit_settings.system = 'METRIC'
-        bpy.context.scene.unit_settings.scale_length = 1
+        bpy.context.scene.unit_settings.scale_length = 0.01
         bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
         bpy.context.space_data.clip_end = 1e+06
+        bpy.context.space_data.clip_start = 1
 
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.

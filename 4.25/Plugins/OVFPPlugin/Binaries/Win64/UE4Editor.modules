@@ -1,8 +1,0 @@
-{
-	"BuildId": "13144385",
-	"Modules": 
-	{
-		"OVFPPlugin": "UE4Editor-OVFPPlugin.dll",
-		"OVFPVPUtilitiesAdd": "UE4Editor-OVFPVPUtilitiesAdd.dll"
-	}
-}

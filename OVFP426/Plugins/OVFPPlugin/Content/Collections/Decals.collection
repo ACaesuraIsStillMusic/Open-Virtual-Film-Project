@@ -1,0 +1,10 @@
+FileVersion:2
+Type:Static
+Guid:384656B9-4008-7298-BFB8-7DA48B68BC2B
+ParentGuid:90125476-4C70-0B85-C63C-24B3B6A74323
+
+/OVFPPlugin/masterMaterials/decals/MM_Swap_Decal.MM_Swap_Decal
+/OVFPPlugin/masterMaterials/decals/MM_Swap_Decal_dbuffer.MM_Swap_Decal_dbuffer
+/OVFPPlugin/masterMaterials/decals/MM_Swap_DecalDbufferEmissive.MM_Swap_DecalDbufferEmissive
+/OVFPPlugin/masterMaterials/decals/MM_Swap_DecalDbufferTransluscent.MM_Swap_DecalDbufferTransluscent
+/OVFPPlugin/masterMaterials/decals/MM_Swap_DecalEmissive.MM_Swap_DecalEmissive

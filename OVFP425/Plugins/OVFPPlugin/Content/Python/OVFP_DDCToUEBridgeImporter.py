@@ -613,6 +613,7 @@ parser.add_argument("-fn", "--FBXName", help = "Name of fbx to import name.fbx")
 parser.add_argument("-tp", "--UnrealTexturePath",help = "Unreal Folder to import textures into")
 parser.add_argument("-mt", "--UnrealMatPath",help = "Unreal Folder to import materials into")
 parser.add_argument("-q", "--query", help = "query unreal for info on the current project")
+parser.add_argument("-s", "--simple", help = "if this argument is set, the import will not include an ash or asb file in the folder")
 # Read arguments from command line 
 args = parser.parse_args() 
 UEImporter = USendToUnreal()
@@ -620,7 +621,7 @@ UEImporter = USendToUnreal()
 if args.UnrealMatPath:
     if args.UnrealMatPath.endswith("/"):
         args.UnrealMatPath = args.UnrealMatPath[0:len(args.UnrealMatPath)-1]
-  
+        
 if args.UnrealMeshPath and args.hardDiskPath and args.FBXName:
     #test with 
 #BlenderToUnrealADGBridge_Import.py -i "C:/Users/danco/Documents/Unreal Projects/UE4-VirtualProductionTools/UE4BlenderPython/TestFiles/" -mp "/Game/testImport" -fn "scene.fbx"
@@ -658,10 +659,12 @@ if args.UnrealMeshPath and args.hardDiskPath and args.FBXName:
     UEImporter.readMaterialInstanceCSV()
     
     UEImporter.importfbxstack()
-    UEImporter.importHierarchyCSV()
-    UEImporter.createBlueprintScene()
     
-if args.query:
+    if not args.simple:
+        UEImporter.importHierarchyCSV()
+        UEImporter.createBlueprintScene()
+    
+elif args.query:
     if args.query == "m" and args.UnrealMatPath:
         UEImporter.UEMaterialDirectory = args.UnrealMatPath
         UEImporter.queryMaterials()

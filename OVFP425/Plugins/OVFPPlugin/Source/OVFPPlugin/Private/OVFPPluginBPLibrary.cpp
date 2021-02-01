@@ -61,6 +61,16 @@ UStaticMesh* UOVFPPluginBPLibrary::VPOVFPDefaultCube()
 	return GetDefault<UOVFPSettings>()->OVFPdefaultScaleCube;
 }
 
+FOVFPTexNamingConSuffix UOVFPPluginBPLibrary::VPOVFPTexNamingCon()
+{
+	return GetDefault<UOVFPSettings>()->OVFPdefaultTexNamingCons;
+}
+
+FOVFPMaterialParameterConversions UOVFPPluginBPLibrary::VPOVFPMatConvParam()
+{
+	return GetDefault<UOVFPSettings>()->OVFPdefaultMatConvParam;
+}
+
 
 bool UOVFPPluginBPLibrary::VPOVFPAddLevel(UWorld *world, FString NewPackageName, FTransform & LevelTransform) //add level
 {

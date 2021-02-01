@@ -1,0 +1,14 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UE4Editor-OVFPPlugin-0009.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\Github\Open-Virtual-Film-Project\OVFP425\Intermediate\Build\Win64\OVFP425Editor\Development\UnrealEd\SharedPCH.UnrealEd.ShadowErrors.h.obj"
+"D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPPlugin\Module.OVFPPlugin.cpp.obj"
+"D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPPlugin\Module.OVFPPlugin.gen.cpp.obj"
+"D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPPlugin\Default.rc2.res"
+/OUT:"D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Development\OVFPPlugin\UE4Editor-OVFPPlugin-0009.lib"
+/INCLUDE:IMPLEMENT_MODULE_OVFPPlugin

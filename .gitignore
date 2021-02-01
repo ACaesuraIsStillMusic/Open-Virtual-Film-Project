@@ -1,5 +1,6 @@
 /OVFP425/content/
 /OVFP425/plugins/storyboardTool/
+/OVFP425/plugins/publish/
 /OVFP425/binaries/
 /OVFP425/.vs/
 /OVFP425/bak/
@@ -17,5 +18,5 @@
 /OVFP426/derivedDataCache/
 /OVFP426/intermediate/
 /OVFP426/saved/
-
+/OVFP426/plugins/publish/
 /OVFP426/plugins/storyboardTool/

@@ -8,6 +8,8 @@
 #include "UObject/ScriptMacros.h"
 
 PRAGMA_DISABLE_DEPRECATION_WARNINGS
+struct FOVFPMaterialParameterConversions;
+struct FOVFPTexNamingConSuffix;
 class UStaticMesh;
 class UEditorUtilityWidgetBlueprint;
 class UWorld;
@@ -26,6 +28,8 @@ struct FTransform;
 #if WITH_EDITOR
 #define OVFP425_Plugins_OVFPPlugin_Source_OVFPPlugin_Public_OVFPPluginBPLibrary_h_21_EDITOR_ONLY_RPC_WRAPPERS \
  \
+	DECLARE_FUNCTION(execVPOVFPMatConvParam); \
+	DECLARE_FUNCTION(execVPOVFPTexNamingCon); \
 	DECLARE_FUNCTION(execVPOVFPDefaultCube); \
 	DECLARE_FUNCTION(execVPOVFPLSLLocations); \
 	DECLARE_FUNCTION(execVPOVFPMLPrefix); \
@@ -44,6 +48,8 @@ struct FTransform;
 
 #define OVFP425_Plugins_OVFPPlugin_Source_OVFPPlugin_Public_OVFPPluginBPLibrary_h_21_EDITOR_ONLY_RPC_WRAPPERS_NO_PURE_DECLS \
  \
+	DECLARE_FUNCTION(execVPOVFPMatConvParam); \
+	DECLARE_FUNCTION(execVPOVFPTexNamingCon); \
 	DECLARE_FUNCTION(execVPOVFPDefaultCube); \
 	DECLARE_FUNCTION(execVPOVFPLSLLocations); \
 	DECLARE_FUNCTION(execVPOVFPMLPrefix); \

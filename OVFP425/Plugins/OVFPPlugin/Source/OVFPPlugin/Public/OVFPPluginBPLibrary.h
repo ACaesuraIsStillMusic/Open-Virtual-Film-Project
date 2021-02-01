@@ -6,7 +6,7 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Misc/Char.h"
 #include "OVFPPlugin.h"
-
+#include "OVFPSettings.h"
 
 #include "OVFPPluginBPLibrary.generated.h"
 
@@ -66,6 +66,11 @@ class UOVFPPluginBPLibrary : public UBlueprintFunctionLibrary
 		UFUNCTION(BlueprintPure, meta = (DisplayName = "Get OVFP Default Scale Cube", Keywords = "OVFP Virtual Production VP"), Category = "OVFPPlugins")
 			static UStaticMesh* VPOVFPDefaultCube();
 
+		UFUNCTION(BlueprintPure, meta = (DisplayName = "Get OVFP Material Naming Conventions", Keywords = "OVFP Virtual Production VP"), Category = "OVFPPlugins")
+			static FOVFPTexNamingConSuffix VPOVFPTexNamingCon();
+
+		UFUNCTION(BlueprintPure, meta = (DisplayName = "Get OVFP Material Conversion Parameters", Keywords = "OVFP Virtual Production VP"), Category = "OVFPPlugins")
+			static FOVFPMaterialParameterConversions VPOVFPMatConvParam();
 
 #endif	
 };

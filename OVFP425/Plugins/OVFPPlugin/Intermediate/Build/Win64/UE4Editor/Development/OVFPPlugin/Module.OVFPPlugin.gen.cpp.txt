@@ -155,9 +155,9 @@ C:\Program Files\Epic Games\UE_4.25\Engine\Intermediate\Build\Win64\UE4Editor\In
 C:\Program Files\Epic Games\UE_4.25\Engine\Intermediate\Build\Win64\UE4Editor\Inc\MovieScene\MovieSceneSequence.generated.h
 C:\Program Files\Epic Games\UE_4.25\Engine\Intermediate\Build\Win64\UE4Editor\Inc\UMG\WidgetAnimation.generated.h
 C:\Program Files\Epic Games\UE_4.25\Engine\Intermediate\Build\Win64\UE4Editor\Inc\UMG\UserWidget.generated.h
-D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Inc\OVFPPlugin\OVFPPluginBPLibrary.generated.h
-D:/Github/Open-Virtual-Film-Project/OVFP425/Plugins/OVFPPlugin/Intermediate/Build/Win64/UE4Editor/Inc/OVFPPlugin/OVFPSettings.gen.cpp
-D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Source\OVFPPlugin/Public/OVFPSettings.h
+D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Source\OVFPPlugin\Public\OVFPSettings.h
 C:\Program Files\Epic Games\UE_4.25\Engine\Source\Runtime\Engine\Classes\Engine/DeveloperSettings.h
 C:\Program Files\Epic Games\UE_4.25\Engine\Intermediate\Build\Win64\UE4Editor\Inc\Engine\DeveloperSettings.generated.h
 D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Inc\OVFPPlugin\OVFPSettings.generated.h
+D:\Github\Open-Virtual-Film-Project\OVFP425\Plugins\OVFPPlugin\Intermediate\Build\Win64\UE4Editor\Inc\OVFPPlugin\OVFPPluginBPLibrary.generated.h
+D:/Github/Open-Virtual-Film-Project/OVFP425/Plugins/OVFPPlugin/Intermediate/Build/Win64/UE4Editor/Inc/OVFPPlugin/OVFPSettings.gen.cpp

@@ -12,10 +12,9 @@ UOVFPSettings::UOVFPSettings()
 	SectionName = TEXT("OVFP");
 
 	OVFPBlenderPath;
-	OVFPMLPaths.Add(TEXT("/Game/Environments"));
-	OVFPMLPrefix.Add(TEXT("ML"));
-	OVFPLSLLocations.Add(TEXT("/Game/assets/lights"));
 	
+
+
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MyMesh(TEXT("StaticMesh'/OVFPPlugin/tools/scaleCubes/SM_ovfp_ScaleCube-1M1Ft.SM_ovfp_ScaleCube-1M1Ft'"));
 	OVFPdefaultScaleCube = MyMesh.Object;
 	

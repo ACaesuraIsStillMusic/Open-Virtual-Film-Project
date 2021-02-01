@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Open Virtual Film Project Blender To Unreal Bridge",
     "author": "Fae Corrigan",
-    "version": (0,1,1,3),
+    "version": (0,1,1,7),
     "category": "Object",
     "blender": (2,80,0),
     "location": "View3D > Sidebar > Tools Tab",
@@ -92,8 +92,9 @@ try:
         print(current_version)
         if new_version > current_version:
             updateAvailable = True
-except:
-    pass
+except Exception:
+    print("unable to test version")
+    print(Exception)
         
 #test blender version
 if (2 , 90 , 0 ) <= bpy.app.version:
@@ -335,6 +336,12 @@ class OVFPB2U_OT_properties(PropertyGroup):
         default = False
         ) 
         
+    OVFPB2U_simpleImport: BoolProperty(
+        name="No ASH/ASB",
+        description="If True, the import will not include ash or asb files, useful for single asset or stacked asset imports",
+        default = False
+        )    
+        
     OVFPB2U_maintaintopography: BoolProperty(
         name="Maintain Topography",
         description="True will prevent the tool from doing any planar decimation. It will still triangulate",
@@ -518,8 +525,10 @@ class OVFPB2U_PT_OverviewPanel(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
             box = layout.box()
             box.label(text = "There is an update available:")
             box.prop(mytool, "OVFPB2U_updatePath")
-           
-                
+            box.label(text = "To install, open edit->preferences->addons, search for OVFP,")
+            box.label(text = "disable the plugin and install the new one")
+            box.label(text = "Make sure to check your plugin settings after installing,")
+            box.label(text = "they will have reverted to defaults")
             
  
 class OVFPB2U_PT_SetupPanel(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
@@ -625,11 +634,12 @@ class OVFPB2U_PT_CLEANUPPANEL(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
 
         layout.operator("object.b2ufixparent")
         layout.operator("context.b2upurgeunused")
-        
+        layout.operator("context.b2uremoveemptymeshes")
         
         
         
         layout.separator()
+        layout.operator("object.setue4lod")
         
 
         layout.operator("object.origintoselected")
@@ -653,8 +663,7 @@ class OVFPB2U_PT_NamingConventions(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
             layout.operator("object.b2ubrenametextures")
         else:
             layout.label(text = "Please fill out setup infomation before proceding")
-            mytool.OVFPB2U_FBXexportPath = ""
-            mytool.OVFPB2U_unrealCommand = ""
+            
             
 class OVFPB2U_PT_EXPORTPANEL(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
     bl_parent_id = "OVFPB2U_PT_OverviewPanel"
@@ -667,6 +676,7 @@ class OVFPB2U_PT_EXPORTPANEL(OVFPB2U_PT_MAINPanel, bpy.types.Panel):
          
         #layout.prop(mytool, "OVFPB2U_unrealCommand")
         #layout.operator("object.prepmeshexport")
+        layout.prop(mytool, "OVFPB2U_simpleImport")
         if mytool.OVFPB2U_objectName != "" and mytool.OVFPB2U_objectSource != "" and mytool.OVFPB2U_artistInitials != "" and len(mytool.OVFPB2U_FBXexportPath)>0 and len(mytool.OVFPB2U_unrealCommand)>0 :
             if round(bpy.context.scene.unit_settings.scale_length,2) == 0.01:
                 layout.operator("context.b2ubexportall")
@@ -745,6 +755,122 @@ class OVFPB2U_OT_Test(bpy.types.Operator):
 
 ##############################################################################################################################################################################################################
 
+class OVFPB2U_OT_RemoveEmptyMeshes(bpy.types.Operator):
+    """Find and remove any meshes that do not have any verticies"""      # Use this as a tooltip for menu items and buttons.
+    bl_idname = "context.b2uremoveemptymeshes"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Remove Empty Meshes"         # Display name in the interface.
+    
+    
+    
+    
+    def execute(self, context):        # execute() is called when running the operator.
+
+        # The original script
+        scene = context.scene
+        mytool = scene.my_tool
+        objs = bpy.context.view_layer.objects
+        for obj in objs:           
+            if len(obj.data.vertices) == 0:
+                parent = obj.parent
+                children = obj.children
+                for c in children:
+                    c.parent = parent
+                bpy.data.objects.remove(obj, do_unlink=True)
+        
+
+
+        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
+
+##############################################################################################################################################################################################################
+
+
+class OVFPB2U_OT_SetupLOD(bpy.types.Operator):
+    """Setup UE4 Lods for selected Objects"""      # Use this as a tooltip for menu items and buttons.
+    bl_idname = "object.setue4lod"        # Unique identifier for buttons and menu items to reference.
+    bl_label = "Setup UE4 Lods"         # Display name in the interface.
+    bl_options = {'REGISTER', 'UNDO'}  # Enable undo for the operator.
+    
+    @classmethod
+    def poll(cls, context):
+        try:
+                
+            if context.mode == 'OBJECT' and context.active_object.select_get() and context.active_object.type == 'MESH' and context.active_object is not None:
+                return True
+            else:
+                return False
+                    
+        except Exception:
+            return False
+        
+    
+    
+    
+    
+    
+    def execute(self, context):        # execute() is called when running the operator.
+        
+        # The original script
+        scene = context.scene
+        mytool = scene.my_tool
+        objs = bpy.context.selected_objects
+        newName = objs[0].name
+        objs[0].name = newName + "1"
+        try:
+            if newName.rsplit("_",1)[1].lower().startswith("lod"):
+                
+                newName = newName.rsplit("_",1)[0]
+        except:
+            pass
+            
+            
+        while (newName + "_lodGroup") in bpy.data.objects: #fix numeric values
+            head = newName.rstrip('0123456789')
+            tail = newName[len(head):]
+            if tail == "":
+                tail = "0"
+            number = int(tail)
+            next = str(number + 1)
+            while len(next) < len(tail):
+                next = "0" + next
+                
+            newName = head+next
+
+        root = bpy.data.objects.new( newName + "_lodGroup", None )
+        
+        
+        
+        # due to the new mechanism of "collection"
+        collection = objs[0].users_collection[0]
+        collection.objects.link(root)
+        # empty_draw was replaced by empty_display
+        root.empty_display_size = 2
+        root.empty_display_type = 'PLAIN_AXES' 
+        root["fbx_type"] = "LodGroup"
+        root.matrix_world = objs[0].matrix_world
+        index = 0
+        for obj in objs:
+            if obj.type == 'MESH':
+                if index == 0:
+                    obj.name = newName
+                else:
+                    obj.name = newName + "_LOD"+str(index)
+                index += 1
+                obj.users_collection[0].objects.unlink(obj)
+                try:
+                    collection.objects.link( obj )
+                except:
+                    pass
+                obj.parent = root
+                obj.matrix_world = root.matrix_world
+        
+        
+        
+
+
+        return {'FINISHED'}            # Lets Blender know the operator finished successfully.
+
+##############################################################################################################################################################################################################
+
 class OVFPB2U_OT_SetDefaultUnits(bpy.types.Operator):
     """Run once before importing to make sure your blender units are all set up correctly for export to UE4. Note: this may cause issues with physics and lighting inside of blender"""      # Use this as a tooltip for menu items and buttons.
     bl_idname = "context.b2ubsetdefaultunits"        # Unique identifier for buttons and menu items to reference.
@@ -763,6 +889,9 @@ class OVFPB2U_OT_SetDefaultUnits(bpy.types.Operator):
         bpy.context.scene.unit_settings.length_unit = 'CENTIMETERS'
         bpy.context.space_data.clip_end = 1e+06
         bpy.context.space_data.clip_start = 1
+        bpy.data.use_autopack = True
+        bpy.context.space_data.overlay.show_stats = True
+
 
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
@@ -804,32 +933,42 @@ class OVFPB2U_OT_writeCSV(bpy.types.Operator):
         objRotationout[2] = -math.degrees(objRotation.z)
 
         selection = bpy.context.selected_objects
-        
+        isLodObject = False
         meshpath = ""
         if csvobject.type == "MESH": #TODO metadata references, lights, cameras, etc
             meshname = csvobject.data.name
             meshname = meshname.replace(".","_")
             if csvobject in selection:
                 meshpath = "StaticMesh'" + mytool.OVFPB2U_MeshImportPath + "/" + meshname + "." + meshname + "'"
+            
+            
+            
             #StaticMesh'/Game/assets/rocks/SM_CC0_3dRock001/SM_CC0_3DRock001.SM_CC0_3DRock001'
-        
+        else:
+            if "fbx_type" in csvobject.keys():
+                if csvobject["fbx_type"] == "LodGroup":
+                    isLodObject = True
+                if csvobject in selection:
+                    objectname = csvobject.name.replace('_lodGroup','')
+                    meshpath = "StaticMesh'" + mytool.OVFPB2U_MeshImportPath + "/" + objectname + "." + objectname + "'"
+
         
         prt = "(Rotation=(X=" + str(objRotationout[0]) + ",Y=" + str(objRotationout[1])+",Z=" + str(objRotationout[2])+",W=0),Translation=(X="+str(objectpos[0]*-1) + ",Y="+str(objectpos[1]) + ",Z="+str(objectpos[2]) + "),Scale3D=(X=" + str(obScale[0]) + ",Y=" + str(obScale[1]) + ",Z=" + str(obScale[2]) + "))"
         #(Rotation=(X=0.000000,Y=0.000000,Z=0.000000,W=1.000000),Translation=(X=0.000000,Y=0.000000,Z=0.000000),Scale3D=(X=1.000000,Y=1.000000,Z=1.000000))
         csvrotation = "(Pitch=" + str(objRotationout[1]) + ",Yaw="+str(objRotationout[2])+",Roll="+str(objRotationout[0])+")"
-        
-        
         objmats = OVFPB2U_OT_writeCSV.getMaterials(csvobject,mytool)
+        
         
         rows.append([objectname,objectname,parentname,meshpath,prt,objmats[0],csvrotation,objmats[1]])
         #print(parent.children)
-        for c in csvobject.children:
-            scaleOffset2 = csvobject.scale*1
-            scaleOffset2.x = csvobject.scale.x*scaleOffset.x
-            scaleOffset2.y = csvobject.scale.y*scaleOffset.y
-            scaleOffset2.z = csvobject.scale.z*scaleOffset.z
-            #scaleOffset2 = csvobject.scale*scaleOffset
-            rows = OVFPB2U_OT_writeCSV.buildMeshHierarchy(c,mytool,rows,scaleOffset2)
+        if not isLodObject:
+            for c in csvobject.children:
+                scaleOffset2 = csvobject.scale*1
+                scaleOffset2.x = csvobject.scale.x*scaleOffset.x
+                scaleOffset2.y = csvobject.scale.y*scaleOffset.y
+                scaleOffset2.z = csvobject.scale.z*scaleOffset.z
+                #scaleOffset2 = csvobject.scale*scaleOffset
+                rows = OVFPB2U_OT_writeCSV.buildMeshHierarchy(c,mytool,rows,scaleOffset2)
         
         return rows
     
@@ -968,94 +1107,97 @@ class OVFPB2U_OT_writeCSV(bpy.types.Operator):
         # Get its first material slot
         material = m
         # Get the nodes in the node tree
-        if material.node_tree:
-        
-            nodes = material.node_tree.nodes
-            # Get a principled node
-            #principled = False
-            principled = nodes.get("Principled BSDF")
+        try:
+            if material.node_tree:
             
-            
-            if material and material.use_nodes and principled: #make sure we have a material and it uses nodes
+                nodes = material.node_tree.nodes
+                # Get a principled node
+                #principled = False
+                principled = nodes.get("Principled BSDF")
                 
                 
-                
-                #parameterName,defaultColor, masterMaterialOverride,principled,mytool,mastermat
-                # Get the info for 'base color'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Base Color', [0.8,0.8,0.8,1], mastermat,principled,mytool,mastermat)
-                baseColorTint = values[0]
-                baseColorTexture = values[1]
-                mastermat = values[2]
-                
-                # Get the slot for 'subsurface color'######################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Subsurface Color', [0.8,0.8,0.8,1], '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_Solid_Subsurface',principled,mytool,mastermat)
-                subsurfaceTint = values[0]
-                subCTexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Clearcoat Normal'#####################################################
-                clearcoatnormal = OVFPB2U_OT_writeCSV.getNormalTexture('Clearcoat Normal',principled,mytool)
-                            
-                # Get the info for 'Clearcoat Roughness'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Clearcoat Roughness', 0.03, mastermat,principled,mytool,mastermat)
-                clearcoatroughnessamount = values[0]
-                clearcoatroughnesstexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Emission'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Emission', [0,0,0,1], '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_Emissive',principled,mytool,mastermat)
-                emissiveamount = values[0]
-                emissivetexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Metallic'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Metallic', 0, mastermat,principled,mytool,mastermat)
-                metallicbrightness = values[0]
-                metallictexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Normal'#####################################################
-                print("testing normal0  ")
-                normaltexture = OVFPB2U_OT_writeCSV.getNormalTexture('Normal',principled,mytool)
-                
-                # Get the info for 'Alpha'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Alpha', 1, mastermat,principled,mytool,mastermat)
-                opacityamount = values[0]
-                opacitytexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Roughness'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Roughness', 0.5, mastermat,principled,mytool,mastermat)
-                roughnessamount = values[0]
-                roughnesstexture = values[1]
-                mastermat = values[2]
-                
-                # Get the info for 'Specular'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Specular', 0.5, mastermat,principled,mytool,mastermat)
-                specularconstant = values[0]
-                mastermat = values[2]
-                
-                # Get the info for 'Anisotropic'#####################################################
-                values = OVFPB2U_OT_writeCSV.getMatColorTexture('Anisotropic', 0, mastermat,principled,mytool,mastermat)
-                #roughnessamount = values[0]
-                anisotropictexture = values[1]
-                mastermat = values[2]
-
-
-                if material.blend_method != "OPAQUE":
-                    mastermat = '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_GlassSimpleTransluscent'
-                    if opacityamount =="":
-                        opacityamount = 1
-                #except:
-                #    print( 'not found' )
+                if material and material.use_nodes and principled: #make sure we have a material and it uses nodes
                     
-                
-                rows.append([ m.name , m.name, mastermat, overwriteExisting , baseColorTexture, baseColorTint , subCTexture, subsurfaceTint,clearcoatnormal,clearcoatroughnesstexture,clearcoatroughnessamount,emissivetexture,emissiveamount,metallictexture,metallicbrightness,normaltexture,opacitytexture,opacityamount,roughnesstexture,roughnessamount,specularconstant,anisotropictexture])
-            else:
-                rows.append([ m.name , m.name, mastermat, overwriteExisting])
-        else: #we don't know how to parse the material, so just create a blank one in UE
-            rows.append([ m.name , m.name, mastermat, overwriteExisting])
+                    
+                    
+                    #parameterName,defaultColor, masterMaterialOverride,principled,mytool,mastermat
+                    # Get the info for 'base color'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Base Color', [0.8,0.8,0.8,1], mastermat,principled,mytool,mastermat)
+                    baseColorTint = values[0]
+                    baseColorTexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the slot for 'subsurface color'######################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Subsurface Color', [0.8,0.8,0.8,1], '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_Solid_Subsurface',principled,mytool,mastermat)
+                    subsurfaceTint = values[0]
+                    subCTexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Clearcoat Normal'#####################################################
+                    clearcoatnormal = OVFPB2U_OT_writeCSV.getNormalTexture('Clearcoat Normal',principled,mytool)
+                                
+                    # Get the info for 'Clearcoat Roughness'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Clearcoat Roughness', 0.03, mastermat,principled,mytool,mastermat)
+                    clearcoatroughnessamount = values[0]
+                    clearcoatroughnesstexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Emission'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Emission', [0,0,0,1], '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_Emissive',principled,mytool,mastermat)
+                    emissiveamount = values[0]
+                    emissivetexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Metallic'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Metallic', 0, mastermat,principled,mytool,mastermat)
+                    metallicbrightness = values[0]
+                    metallictexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Normal'#####################################################
+                    print("testing normal0  ")
+                    normaltexture = OVFPB2U_OT_writeCSV.getNormalTexture('Normal',principled,mytool)
+                    
+                    # Get the info for 'Alpha'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Alpha', 1, mastermat,principled,mytool,mastermat)
+                    opacityamount = values[0]
+                    opacitytexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Roughness'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Roughness', 0.5, mastermat,principled,mytool,mastermat)
+                    roughnessamount = values[0]
+                    roughnesstexture = values[1]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Specular'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Specular', 0.5, mastermat,principled,mytool,mastermat)
+                    specularconstant = values[0]
+                    mastermat = values[2]
+                    
+                    # Get the info for 'Anisotropic'#####################################################
+                    values = OVFPB2U_OT_writeCSV.getMatColorTexture('Anisotropic', 0, mastermat,principled,mytool,mastermat)
+                    #roughnessamount = values[0]
+                    anisotropictexture = values[1]
+                    mastermat = values[2]
 
+
+                    if material.blend_method != "OPAQUE":
+                        mastermat = '/OVFPPlugin/masterMaterials/surfaces/MM_Swap_GlassSimpleTransluscent'
+                        if opacityamount =="":
+                            opacityamount = 1
+                    #except:
+                    #    print( 'not found' )
+                        
+                    
+                    rows.append([ m.name , m.name, mastermat, overwriteExisting , baseColorTexture, baseColorTint , subCTexture, subsurfaceTint,clearcoatnormal,clearcoatroughnesstexture,clearcoatroughnessamount,emissivetexture,emissiveamount,metallictexture,metallicbrightness,normaltexture,opacitytexture,opacityamount,roughnesstexture,roughnessamount,specularconstant,anisotropictexture])
+                else:
+                    rows.append([ m.name , m.name, mastermat, overwriteExisting])
+            else: #we don't know how to parse the material, so just create a blank one in UE
+                rows.append([ m.name , m.name, mastermat, overwriteExisting])
+        except:
+            if material:
+                rows.append([ m.name , m.name, mastermat, overwriteExisting])
 
         return rows
 
@@ -1088,11 +1230,13 @@ class OVFPB2U_OT_writeCSV(bpy.types.Operator):
         mytool = scene.my_tool
         #rows = OVFPB2U_OT_writeCSV.setupMeshCSV(mytool,rows)
         outputObjects = []
-        objects = scene.objects
+        objects = bpy.context.selected_objects
         
         for obj in objects: #fixes problems with selecting a child object without its parent
             while obj.parent:
                 obj = obj.parent
+                print("parent" + str(obj))
+            print(obj)
             if obj not in outputObjects:
                 outputObjects.append(obj)
         
@@ -1861,15 +2005,21 @@ class OVFPB2U_OT_namingConMeshes(bpy.types.Operator):
 
         # The original script
         for obj in bpy.context.selected_objects:
-            if obj.type == 'MESH':  
-                objectname = obj.name
-                if objectname[0].isalpha()==False:
-                    objectname = "SM_"+objectname
-                objectname = OVFPB2U_OT_QuickCleanGeo.fixstring(objectname)
-                
-                obj.data.name = objectname
-                obj.name = objectname
-
+            if obj.type == 'MESH': 
+                isLodGroup = False
+                if "fbx_type" in obj.parent.keys():
+                    if obj["fbx_type"] == "LodGroup":
+                        isLodGroup = True
+                if not isLodGroup:        
+                    objectname = obj.name
+                    if objectname[0].isalpha()==False:
+                        objectname = "SM_"+objectname
+                    objectname = OVFPB2U_OT_QuickCleanGeo.fixstring(objectname)
+                    
+                    obj.data.name = objectname
+                    obj.name = objectname
+            
+      
 
         
         #end original script
@@ -2003,6 +2153,18 @@ class OVFPB2U_OT_RenameMaterials(bpy.types.Operator):
                     if test:
                         newname = newname + "1"
                     test = True
+            
+            while (newname) in bpy.data.materials and newname != m.name: #find a unique name for this object
+                    head = newname.rstrip('0123456789')
+                    tail = newname[len(head):]
+                    if tail == "":
+                        tail = "0"
+                    number = int(tail)
+                    next = str(number + 1)
+                    while len(next) < len(tail):
+                        next = "0" + next
+                        
+                    newname = head+next  
                     
             m.name = newname 
         #first three characters are MI_
@@ -2024,7 +2186,7 @@ class OVFPB2U_OT_RenameMeshes(bpy.types.Operator):
     
     @classmethod
     def poll(cls, context):
-        if context.mode == 'OBJECT' and context.active_object is not None:
+        if context.mode == 'OBJECT':
             return True
         else:
             #add warning if needed
@@ -2042,14 +2204,25 @@ class OVFPB2U_OT_RenameMeshes(bpy.types.Operator):
         cleanname = ""
         tempobjectname = ""
         
+        if not bpy.context.selected_objects:
+            bpy.ops.object.select_all(action='SELECT')
         
         #if objectname[0].isalpha()==False:
         #    objectname = "SM_"+objectname
         objectname = OVFPB2U_OT_QuickCleanGeo.fixstring(objectname) #making sure the object name follows all the proper rules
         
         for m in bpy.context.selected_objects:
-        
-            if m.type == 'MESH':
+            isLodGroup = False
+            isinLodGroup = False
+            if m.parent:
+                if "fbx_type" in m.parent.keys():
+                    if m.parent["fbx_type"] == "LodGroup":
+                        isinLodGroup = True
+            if "fbx_type" in m.keys():
+                if m["fbx_type"] == "LodGroup":
+                    isLodGroup = True
+                        
+            if m.type == 'MESH' and not isinLodGroup:
                 
                 cleanname = m.name
                 tempobjectname = ""
@@ -2080,13 +2253,82 @@ class OVFPB2U_OT_RenameMeshes(bpy.types.Operator):
                 for q in mesh_list:
                     if m.name.casefold() == q.name.casefold():
                         if test:
-                            newname = newname + "1"
+                            newname = newname + "1" #fix with an add to current numeric value at end
                         test = True
                         
-                
+                while (newname) in bpy.data.objects and newname != m.name: #find a unique name for this object
+                    head = newname.rstrip('0123456789')
+                    tail = newname[len(head):]
+                    if tail == "":
+                        tail = "0"
+                    number = int(tail)
+                    next = str(number + 1)
+                    while len(next) < len(tail):
+                        next = "0" + next
+                        
+                    newname = head+next
                 m.name = newname
                 m.data.name = newname
-            else:
+            
+            elif isLodGroup:
+                cleanname = m.name
+                if cleanname.lower().endswith("_lodgroup"):
+                    
+                    cleanname = cleanname[0:(-8)]
+                    
+                    
+                tempobjectname = ""
+                newname = ""
+                if cleanname[:3] == "SM_":
+                    cleanname = cleanname[3:] #strip the SM_ from the string and remove spaces
+                    #print(cleanname)
+                    if len(cleanname.split('_')) > 1:
+                        tempobjectname = cleanname.split('_')[0]
+                        s = ''
+                        cleanname = s.join(cleanname.split('_')[1:])
+                        cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname)
+                        tempobjectname = OVFPB2U_OT_QuickCleanGeo.fixstring(tempobjectname)
+                        #cleanname = re.sub('[!@#$]', '', re.sub(' ', '', re.sub('_', '',cleanname))) #Remove spaces, underscores and special characters
+                        #tempobjectname = re.sub('[!@#$]', '', re.sub(' ', '', re.sub('_', '',tempobjectname))) #Remove spaces, underscores and special characters
+                        newname = "SM_"+tempobjectname+"_"+cleanname
+                    else:
+                        cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname)
+                        #cleanname = re.sub('[!@#$]', '', re.sub(' ', '', re.sub('_', '',cleanname))) #Remove spaces, underscores and special characters
+                        newname = "SM_"+cleanname
+                else:
+                    #cleanname = cleanname.replace(objectname,"")
+                    cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname)
+                    #cleanname = re.sub('[!@#$]', '', re.sub(' ', '', re.sub('_', '',cleanname))) #Remove spaces, underscores and special characters
+                    newname = "SM_"+objectname+"_"+cleanname      
+                
+                test = False
+                for q in mesh_list:
+                    if m.name.casefold() == q.name.casefold():
+                        if test:
+                            newname = newname + "1" #fix with an add to current numeric value at end
+                        test = True
+                        
+                cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname)
+                m.name = newname + "_lodGroup"
+                
+                children = [] 
+                for ob in bpy.data.objects: 
+                    if ob.parent == m: 
+                        children.append(ob) 
+                
+                
+                index = 0
+                for obj in children:
+
+                    if index == 0:
+                        obj.name = newname
+                    else:
+                        obj.name = newname + "_LOD" + str(index)
+                    index += 1
+                    print(obj.name)
+                
+                
+            elif not isinLodGroup:
                 cleanname = m.name
                 cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname)
                 m.name = cleanname
@@ -2192,13 +2434,21 @@ class OVFPB2U_OT_RenameTextures(bpy.types.Operator):
                                         cleanname = t.image.name
                                         tempobjectname = ""
                                         newname = ""
-                                        print(cleanname)
+                                        
+                                        suffix = ""
                                         if cleanname.endswith(('.jpg', '.JPG', '.jpeg', '.JPEG', '.png', '.PNG', '.tga', '.TGA')): #strip suffix if of a known type
                                             cleanname = t.image.name.rsplit('.', 1)[0]
                                                                      
                                         if cleanname[:3] == "TX_": #if the mat starts with TX, make sure it contains no illegal characters and procede
-                                            print(cleanname)
-                                            newname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname, False)  
+                                            
+                                            array = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname, False).split("_")
+                                            if len(array) >= 4:
+                                                suffix = "_"+array[-1]
+                                                newname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname, False).rsplit("_",1)[0]
+                                            else:
+                                                newname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname, False)
+                                            
+                                            
                                         else:
                                             #find the material using this texture
                                             cleanname = OVFPB2U_OT_QuickCleanGeo.fixstring(cleanname,True)
@@ -2209,7 +2459,7 @@ class OVFPB2U_OT_RenameTextures(bpy.types.Operator):
                                             else:
                                                 namestart = "TX_"+objectname+"_"+materialName
                                             
-                                            suffix = ""
+                                            
                                             nodes = node_tree.nodes
                                             # Get a principled node
                                             principled = nodes.get("Principled BSDF")
@@ -2219,10 +2469,26 @@ class OVFPB2U_OT_RenameTextures(bpy.types.Operator):
                                                 suffix = OVFPB2U_OT_RenameTextures.parsenodelink(t)
                                             
                                             
-                                            newname =  namestart + "_" + cleanname + suffix 
+                                            newname =  namestart + "_" + cleanname
                                         
                                         print(newname)
-                                        t.image.name = newname
+                                        print(suffix)
+                                        print(t.image.name)
+                                        while ((newname + suffix) in bpy.data.images) and (newname + suffix) != t.image.name: #find a unique name for this object
+                                            print("in loop")
+                                            head = newname.rstrip('0123456789')
+                                            tail = newname[len(head):]
+                                            if tail == "":
+                                                tail = "0"
+                                            number = int(tail)
+                                            next = str(number + 1)
+                                            while len(next) < len(tail):
+                                                next = "0" + next
+                                                
+                                            newname = head+next  
+                                            
+                                            
+                                        t.image.name = newname + suffix
                                     
                                     
     
@@ -2482,7 +2748,10 @@ class OVFPB2U_OT_createunrealcommand(bpy.types.Operator):
         uc_fn = mytool.OVFPB2U_FBXName
         uc_tp = mytool.OVFPB2U_TexImportPath
         uc_mt = mytool.OVFPB2U_MatImportPath
-        mytool.OVFPB2U_unrealCommand = 'OVFP_DDCToUEBridgeImporter.py -i "'+uc_i+'" -mp "' + uc_mp + '" -fn "' + uc_fn + '" -tp "' + uc_tp + '" -mt "' + uc_mt
+        uc_si = ""
+        if mytool.OVFPB2U_simpleImport:
+            uc_si = '-s "t"'
+        mytool.OVFPB2U_unrealCommand = 'OVFP_DDCToUEBridgeImporter.py -i "'+uc_i+'" -mp "' + uc_mp + '" -fn "' + uc_fn + '" -tp "' + uc_tp + '" -mt "' + uc_mt + '"' + uc_si
         #OVFP_DDCToUEBridgeImporter.py -i "C:/Users/danco/Documents/Unreal Projects/UE4-VirtualProductionTools/UE4BlenderPython/TestFiles/" -mp "/Game/testImport2"                              -fn "scene.fbx"'
         #OVFP_DDCToUEBridgeImporter.py -i "C:/Users/danco/Desktop/project/content/environments/cc0/incomingGeo/20200626_rock_fc/" -mp "/Game/environments/cc0/incomingGeo/20200626_rock_fc" -fn "rock.fbx"        
 
@@ -2530,11 +2799,43 @@ class OVFPB2U_OT_prepMeshExport(bpy.types.Operator):
         selection = bpy.context.selected_objects
         meshes = []
         for i in selection:
+            if "fbx_type" in i.keys():
+                if i["fbx_type"] == "LodGroup":
+                    #print("panic")
+                    prepname = 'prep'+i.name
+                    ob = i.copy()
+                    ob.name = prepname
+                    #ob = bpy.data.objects.new(prepname, None) 
+                    bpy.data.collections["b2ubExport"].objects.link(ob)
+                    ob.location = (0,0,0) # place object at origin
+                    
+                    for obc in bpy.data.objects: 
+                        if obc.parent == i:
+                            prepname = 'prep'+obc.name
+                            c = obc.copy()
+                            c.name = prepname
+                            bpy.data.collections["b2ubExport"].objects.link(c)
+                            c.location = (0,0,0) # place object at origin
+                            c.parent = ob
+                    
+            
             if i.type == "MESH": #TODO metadata references, lights, cameras, etc
-                meshes.append(i.data)
+                if i.parent:
+                    
+                    if "fbx_type" in i.parent.keys():
+                        #print(i.parent)
+                        if i.parent["fbx_type"] == "LodGroup":
+                            pass
+                        else:
+                            meshes.append(i.data)
+                    else:
+                        meshes.append(i.data)   
+                else:
+                    meshes.append(i.data)
+            
         
         
-        
+        print("continue")
         for m in meshes: #add a new instance of each mesh in the scene at 0,0,0 named prep + the name of the mesh
             prepname = 'prep'+m.name
             ob = bpy.data.objects.new(prepname, m) # params are object name, mesh data (we re-use an existing one, which will effectively create a duplicate-linked object)
@@ -2623,7 +2924,7 @@ class OVFPB2U_OT_exportFbx(bpy.types.Operator):
             use_subsurf=False,  
             use_mesh_edges=False, 
             use_tspace=False, 
-            use_custom_props=False, 
+            use_custom_props=True, 
             #add_leaf_bones=MMT.Add_leaf_bones, 
             #primary_bone_axis=MMT.Primary_bone_axis, 
             #secondary_bone_axis=MMT.Secondary_bone_axis, 
@@ -2897,7 +3198,9 @@ classes = (
     OVFPB2U_AddonPreferences,
     OVFPB2U_OT_properties,
     OVFPB2U_OT_QuickCleanGeo,
+    OVFPB2U_OT_RemoveEmptyMeshes,
     OVFPB2U_OT_MergeByEmpty,
+    OVFPB2U_OT_SetupLOD,
     OVFPB2U_OT_createImportPath,
     OVFPB2U_OT_createExportPath,
     OVFPB2U_OT_exportFbx,

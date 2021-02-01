@@ -23,10 +23,26 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 	COREUOBJECT_API UClass* Z_Construct_UClass_UObject_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_UStaticMesh_NoRegister();
 	ENGINE_API UClass* Z_Construct_UClass_ULevelStreaming_NoRegister();
+	OVFPPLUGIN_API UScriptStruct* Z_Construct_UScriptStruct_FOVFPMaterialParameterConversions();
 	BLUTILITY_API UClass* Z_Construct_UClass_UEditorUtilityWidgetBlueprint_NoRegister();
 	COREUOBJECT_API UClass* Z_Construct_UClass_UClass();
+	OVFPPLUGIN_API UScriptStruct* Z_Construct_UScriptStruct_FOVFPTexNamingConSuffix();
 // End Cross Module References
 #if WITH_EDITOR
+	DEFINE_FUNCTION(UOVFPPluginBPLibrary::execVPOVFPMatConvParam)
+	{
+		P_FINISH;
+		P_NATIVE_BEGIN;
+		*(FOVFPMaterialParameterConversions*)Z_Param__Result=UOVFPPluginBPLibrary::VPOVFPMatConvParam();
+		P_NATIVE_END;
+	}
+	DEFINE_FUNCTION(UOVFPPluginBPLibrary::execVPOVFPTexNamingCon)
+	{
+		P_FINISH;
+		P_NATIVE_BEGIN;
+		*(FOVFPTexNamingConSuffix*)Z_Param__Result=UOVFPPluginBPLibrary::VPOVFPTexNamingCon();
+		P_NATIVE_END;
+	}
 	DEFINE_FUNCTION(UOVFPPluginBPLibrary::execVPOVFPDefaultCube)
 	{
 		P_FINISH;
@@ -160,6 +176,7 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 			{ "VPOVFPGetLevelFromStreaming", &UOVFPPluginBPLibrary::execVPOVFPGetLevelFromStreaming },
 			{ "VPOVFPGetLevels", &UOVFPPluginBPLibrary::execVPOVFPGetLevels },
 			{ "VPOVFPLSLLocations", &UOVFPPluginBPLibrary::execVPOVFPLSLLocations },
+			{ "VPOVFPMatConvParam", &UOVFPPluginBPLibrary::execVPOVFPMatConvParam },
 			{ "VPOVFPMLPaths", &UOVFPPluginBPLibrary::execVPOVFPMLPaths },
 			{ "VPOVFPMLPrefix", &UOVFPPluginBPLibrary::execVPOVFPMLPrefix },
 			{ "VPOVFPOpenWidget", &UOVFPPluginBPLibrary::execVPOVFPOpenWidget },
@@ -167,6 +184,7 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 			{ "VPOVFPRemoveLevel", &UOVFPPluginBPLibrary::execVPOVFPRemoveLevel },
 			{ "VPOVFPSaveCSV", &UOVFPPluginBPLibrary::execVPOVFPSaveCSV },
 			{ "VPOVFPSetLevelStreamingClass", &UOVFPPluginBPLibrary::execVPOVFPSetLevelStreamingClass },
+			{ "VPOVFPTexNamingCon", &UOVFPPluginBPLibrary::execVPOVFPTexNamingCon },
 		};
 		FNativeFunctionRegistrar::RegisterFunctions(Class, Funcs, UE_ARRAY_COUNT(Funcs));
 #endif // WITH_EDITOR
@@ -487,6 +505,43 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 		if (!ReturnFunction)
 		{
 			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPLSLLocations_Statics::FuncParams);
+		}
+		return ReturnFunction;
+	}
+#endif //WITH_EDITOR
+#if WITH_EDITOR
+	struct Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics
+	{
+		struct OVFPPluginBPLibrary_eventVPOVFPMatConvParam_Parms
+		{
+			FOVFPMaterialParameterConversions ReturnValue;
+		};
+		static const UE4CodeGen_Private::FStructPropertyParams NewProp_ReturnValue;
+		static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[];
+#if WITH_METADATA
+		static const UE4CodeGen_Private::FMetaDataPairParam Function_MetaDataParams[];
+#endif
+		static const UE4CodeGen_Private::FFunctionParams FuncParams;
+	};
+	const UE4CodeGen_Private::FStructPropertyParams Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UE4CodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, 1, STRUCT_OFFSET(OVFPPluginBPLibrary_eventVPOVFPMatConvParam_Parms, ReturnValue), Z_Construct_UScriptStruct_FOVFPMaterialParameterConversions, METADATA_PARAMS(nullptr, 0) };
+	const UE4CodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::PropPointers[] = {
+		(const UE4CodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::NewProp_ReturnValue,
+	};
+#if WITH_METADATA
+	const UE4CodeGen_Private::FMetaDataPairParam Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::Function_MetaDataParams[] = {
+		{ "Category", "OVFPPlugins" },
+		{ "DisplayName", "Get OVFP Material Conversion Parameters" },
+		{ "Keywords", "OVFP Virtual Production VP" },
+		{ "ModuleRelativePath", "Public/OVFPPluginBPLibrary.h" },
+	};
+#endif
+	const UE4CodeGen_Private::FFunctionParams Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::FuncParams = { (UObject*(*)())Z_Construct_UClass_UOVFPPluginBPLibrary, nullptr, "VPOVFPMatConvParam", nullptr, nullptr, sizeof(OVFPPluginBPLibrary_eventVPOVFPMatConvParam_Parms), Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::PropPointers, UE_ARRAY_COUNT(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::PropPointers), RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x34022401, 0, 0, METADATA_PARAMS(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::Function_MetaDataParams, UE_ARRAY_COUNT(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::Function_MetaDataParams)) };
+	UFunction* Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam()
+	{
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam_Statics::FuncParams);
 		}
 		return ReturnFunction;
 	}
@@ -844,6 +899,43 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 		return ReturnFunction;
 	}
 #endif //WITH_EDITOR
+#if WITH_EDITOR
+	struct Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics
+	{
+		struct OVFPPluginBPLibrary_eventVPOVFPTexNamingCon_Parms
+		{
+			FOVFPTexNamingConSuffix ReturnValue;
+		};
+		static const UE4CodeGen_Private::FStructPropertyParams NewProp_ReturnValue;
+		static const UE4CodeGen_Private::FPropertyParamsBase* const PropPointers[];
+#if WITH_METADATA
+		static const UE4CodeGen_Private::FMetaDataPairParam Function_MetaDataParams[];
+#endif
+		static const UE4CodeGen_Private::FFunctionParams FuncParams;
+	};
+	const UE4CodeGen_Private::FStructPropertyParams Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::NewProp_ReturnValue = { "ReturnValue", nullptr, (EPropertyFlags)0x0010000000000580, UE4CodeGen_Private::EPropertyGenFlags::Struct, RF_Public|RF_Transient|RF_MarkAsNative, 1, STRUCT_OFFSET(OVFPPluginBPLibrary_eventVPOVFPTexNamingCon_Parms, ReturnValue), Z_Construct_UScriptStruct_FOVFPTexNamingConSuffix, METADATA_PARAMS(nullptr, 0) };
+	const UE4CodeGen_Private::FPropertyParamsBase* const Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::PropPointers[] = {
+		(const UE4CodeGen_Private::FPropertyParamsBase*)&Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::NewProp_ReturnValue,
+	};
+#if WITH_METADATA
+	const UE4CodeGen_Private::FMetaDataPairParam Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::Function_MetaDataParams[] = {
+		{ "Category", "OVFPPlugins" },
+		{ "DisplayName", "Get OVFP Material Naming Conventions" },
+		{ "Keywords", "OVFP Virtual Production VP" },
+		{ "ModuleRelativePath", "Public/OVFPPluginBPLibrary.h" },
+	};
+#endif
+	const UE4CodeGen_Private::FFunctionParams Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::FuncParams = { (UObject*(*)())Z_Construct_UClass_UOVFPPluginBPLibrary, nullptr, "VPOVFPTexNamingCon", nullptr, nullptr, sizeof(OVFPPluginBPLibrary_eventVPOVFPTexNamingCon_Parms), Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::PropPointers, UE_ARRAY_COUNT(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::PropPointers), RF_Public|RF_Transient|RF_MarkAsNative, (EFunctionFlags)0x34022401, 0, 0, METADATA_PARAMS(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::Function_MetaDataParams, UE_ARRAY_COUNT(Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::Function_MetaDataParams)) };
+	UFunction* Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon()
+	{
+		static UFunction* ReturnFunction = nullptr;
+		if (!ReturnFunction)
+		{
+			UE4CodeGen_Private::ConstructUFunction(ReturnFunction, Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon_Statics::FuncParams);
+		}
+		return ReturnFunction;
+	}
+#endif //WITH_EDITOR
 	UClass* Z_Construct_UClass_UOVFPPluginBPLibrary_NoRegister()
 	{
 		return UOVFPPluginBPLibrary::StaticClass();
@@ -888,6 +980,9 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 		{ &Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPLSLLocations, "VPOVFPLSLLocations" }, // 3063053760
 #endif //WITH_EDITOR
 #if WITH_EDITOR
+		{ &Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMatConvParam, "VPOVFPMatConvParam" }, // 1490960547
+#endif //WITH_EDITOR
+#if WITH_EDITOR
 		{ &Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPMLPaths, "VPOVFPMLPaths" }, // 107959972
 #endif //WITH_EDITOR
 #if WITH_EDITOR
@@ -907,6 +1002,9 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 #endif //WITH_EDITOR
 #if WITH_EDITOR
 		{ &Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPSetLevelStreamingClass, "VPOVFPSetLevelStreamingClass" }, // 4116405586
+#endif //WITH_EDITOR
+#if WITH_EDITOR
+		{ &Z_Construct_UFunction_UOVFPPluginBPLibrary_VPOVFPTexNamingCon, "VPOVFPTexNamingCon" }, // 3867209767
 #endif //WITH_EDITOR
 	};
 #endif //WITH_EDITOR
@@ -943,7 +1041,7 @@ void EmptyLinkFunctionForGeneratedCodeOVFPPluginBPLibrary() {}
 		}
 		return OuterClass;
 	}
-	IMPLEMENT_CLASS(UOVFPPluginBPLibrary, 1320111923);
+	IMPLEMENT_CLASS(UOVFPPluginBPLibrary, 3782116491);
 	template<> OVFPPLUGIN_API UClass* StaticClass<UOVFPPluginBPLibrary>()
 	{
 		return UOVFPPluginBPLibrary::StaticClass();
